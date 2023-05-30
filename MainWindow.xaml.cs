@@ -1,11 +1,11 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Data;
 using System.Data.Odbc;
 using System.IO;
 using System.Text;
 using System.Windows;
-
+using System.Windows.Forms;
 
 namespace dbf_to_oracle
 {
@@ -15,8 +15,9 @@ namespace dbf_to_oracle
     public partial class MainWindow : Window
     {
         private OdbcConnection odbc; // ODBC коннект
-        private OpenFileDialog openFile; // Работа с проводником для открытия файла
-        private SaveFileDialog saveFile; // Работа с проводником для сохранения
+        private FolderBrowserDialog FBD; //работа с проводником для выбора папки
+        private Microsoft.Win32.OpenFileDialog openFile; // Работа с проводником для открытия файла
+        private Microsoft.Win32.SaveFileDialog saveFile; // Работа с проводником для сохранения
         private OdbcCommand _command; // SQL комманда
         private OdbcDataReader _reader; // Для считывания
         private StreamWriter _fileStream; // Для работы с файлами и запись в них
@@ -28,6 +29,7 @@ namespace dbf_to_oracle
         private string _namefile = string.Empty; // Имя без .DBF
         private string sqlDirectory = string.Empty; // путь до папки сохранения
         private string sqlName = string.Empty; // имя файла
+        private string dbfPath = string.Empty; // путь к папке
         private string _columnName = string.Empty; // Имя колонки
         private string _columnType = string.Empty; // Тип колонки(int, varchar, DateTime)
         private string _insertText = string.Empty; // текст Insert операции
@@ -42,25 +44,35 @@ namespace dbf_to_oracle
         }
 
         private void DBFLoad_Click(object sender, RoutedEventArgs e)
-        {
-            openFile = new OpenFileDialog(); // создаем экземпляр OpenFileDialog
-            saveFile = new SaveFileDialog(); // создаем экземпляр SaveFileDialog
-            if (openFile.ShowDialog() == true) // если окно проводника открыто и файл выбран
+        {   
+            FBD = new FolderBrowserDialog(); // создаем экземпляр FolderBrowserDialog
+
+            if (FBD.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                _DBF.Text = openFile.FileName; // загоняем имя файла документа в TextBox 
-                dbfDirectory = Path.GetDirectoryName(openFile.FileName); // Загоняем путь к файлу в переменую
-                dbfName = openFile.SafeFileName; // загоняем имя файла в переменную 
+                dbfPath = FBD.SelectedPath;
+                _DBF.Text = dbfPath; // записываем имя файла документа в TextBox 
+                openFile = new Microsoft.Win32.OpenFileDialog(); // создаем экземпляр OpenFileDialog
+                saveFile = new Microsoft.Win32.SaveFileDialog(); // создаем экземпляр SaveFileDialog
             }
-            openFile.Reset(); // обнуляемся
+
+            //перенос в старт с алгоритмом пробега по всем файлам
+                if (openFile.ShowDialog() == true) // если окно проводника открыто и файл выбран
+            {
+                dbfDirectory = Path.GetDirectoryName(openFile.FileName); // записываем путь к файлу в переменую
+                dbfName = openFile.SafeFileName; // записываем имя файла в переменную 
+            }
+            openFile.Reset();
             _namefile = dbfName.Remove(dbfName.IndexOf('.')); // получаем имя файла без расширения
             saveFile.FileName = _namefile + "_asd_4321.sql"; // Имя сохраняемого файла  = Имя DBF файла + расширение *.SQL
-            if (saveFile.ShowDialog() == true) // окно сохранения все дела
+            if (saveFile.ShowDialog() == true) // окно сохранения 
             {
                 sqlDirectory = dbfDirectory; // путь к файлу 
                 sqlName = "\\" + saveFile.SafeFileName; // имя файла
             }
-            saveFile.Reset(); // обнуляемся 
-            if (dbfName != null && sqlName != null) // если данные не пустые
+            saveFile.Reset(); 
+            //
+
+            if (dbfPath != null) 
             {
                 _start.IsEnabled = true; // включаем кнопку конвертации 
             }
@@ -69,6 +81,9 @@ namespace dbf_to_oracle
         private void Start_Click(object sender, RoutedEventArgs e)
         {
 
+
+
+
             odbc = new OdbcConnection(@"Driver={Microsoft dBase Driver (*.dbf)}; SourceType=DBF;DefaultDir=" + dbfDirectory + ";Exclusive=No; Collate=Machine;NULL=NO;DELETED=NO; BACKGROUNDFETCH=NO"); // Подключение к DBF
             try
             {
@@ -76,7 +91,7 @@ namespace dbf_to_oracle
                 _command = new OdbcCommand(_select + dbfName, odbc); // Отпавляем команду
                 _reader = _command.ExecuteReader(); // Считываем ответ
                 dataTable = _reader.GetSchemaTable(); // Считываем Схему таблицы 
-                _fileStream = new StreamWriter(sqlDirectory + sqlName, true); // файл куда будем писать и сохранять
+                _fileStream = new StreamWriter(sqlDirectory + sqlName, true); // файл сохранения
                 _fileStream.WriteLine("CREATE TABLE " + _namefile + "_asd_4321 ("); // Шаблон первой строки SQL
                 str = new StringBuilder(); // Экземпляр StringBuilder 
 
@@ -122,18 +137,16 @@ namespace dbf_to_oracle
 
                     }
                     _insertText = _insertText.TrimEnd(','); // удаляем запятую в конце
-                    _fileStream.WriteLine("insert into " + _namefile + "_asd_4321 values (" + _insertText + ");"); // загоняем в наш документ
+                    _fileStream.WriteLine("insert into " + _namefile + "_asd_4321 values (" + _insertText + ");"); // записываем в наш документ
                     _insertText = string.Empty; // обнуляемся
                 }
 
-                _fileStream.Close(); // как все загнали, закрываемся
+                _fileStream.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                System.Windows.MessageBox.Show(ex.Message);
             }
         }
-
     }
 }
-
