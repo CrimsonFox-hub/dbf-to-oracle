@@ -32,11 +32,11 @@ namespace dbf_to_oracle
             switch (type)
             {
                 case "Double":
-                    return Type_.int_; // если пришел Double отправляем int
+                    return Type_.int_; //Double to int
                 case "String":
-                    return Type_.varchar_; // если пришел String отправляем varchar(255)
+                    return Type_.varchar_; //String to varchar(255)
                 case "DateTime":
-                    return Type_.Datetime_; // если пришел DateTime, отправляем datetime
+                    return Type_.Datetime_; //DateTime, to datetime
             }
             return type;
         }
