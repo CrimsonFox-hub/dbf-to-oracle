@@ -1,0 +1,15 @@
+﻿<Window x:Class="dbf_to_oracle.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:dbf_to_oracle"
+        mc:Ignorable="d"
+        Title="Миграция из формата DBF в СУБД Oracle" Height="200" Width="555" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Grid Background="White">
+        <TextBox x:Name="_DBF" HorizontalAlignment="Left" Height="53" Margin="10,19,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="335" Text="Выберите папку содержащую DBF-файлы"></TextBox>
+        <Button x:Name="_DBFLoad" Content="Выбор папки" HorizontalAlignment="Left" Margin="405,32,0,0" VerticalAlignment="Top" Click="DBFLoad_Click" Width="116" Height="27"></Button>
+        <Button x:Name="_start" Content="Конвертировать" HorizontalAlignment="Left" Margin="199,92,0,0" VerticalAlignment="Top" Width="181" Click="Start_Click" Height="42"/>
+
+    </Grid>
+</Window>
